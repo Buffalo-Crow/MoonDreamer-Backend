@@ -33,8 +33,10 @@ const app = express();
 const allowedOrigins = [
   "http://localhost:5173",   // local frontend
   "http://localhost:3001",   // local backend
-];
-      
+  "https://moondreamer.app", // production domain
+  "https://www.moondreamer.app", // production domain with www
+  process.env.FRONTEND_URL,  // Railway frontend URL (backup)
+].filter(Boolean); // removes undefined values
 
 app.use(
   cors({
@@ -71,7 +73,7 @@ app.use(errorHandler);
 
 
 if (process.env.NODE_ENV === "production") {
-  const frontendPath = path.join(__dirname, "frontend-dist"); // <- matches Docker
+  const frontendPath = path.join(__dirname, "frontend-dist");
 
   app.use(express.static(frontendPath));
 
@@ -80,6 +82,5 @@ if (process.env.NODE_ENV === "production") {
   });
 }
 
-// Start server Render
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
