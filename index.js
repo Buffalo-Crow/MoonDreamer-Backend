@@ -35,6 +35,8 @@ const allowedOrigins = [
   "http://localhost:3001",   // local backend
   "https://moondreamer.app", // production domain
   "https://www.moondreamer.app", // production domain with www
+  "https://moondreamer-frontend-production.up.railway.app",
+  
   process.env.FRONTEND_URL,  // Railway frontend URL (backup)
 ].filter(Boolean); // removes undefined values
 
