@@ -31,7 +31,7 @@ mongoose
 const app = express();
 
 const allowedOrigins = [
-  "http://localhost:5174",   // local frontend
+  "http://localhost:5173",   // local frontend
   "http://localhost:3001",   // local backend
 ];
       
