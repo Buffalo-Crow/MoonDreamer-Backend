@@ -31,14 +31,13 @@ mongoose
 const app = express();
 
 const allowedOrigins = [
-  "http://localhost:5173",   // local frontend
-  "http://localhost:3001",   // local backend
-  "https://moondreamer.app", // production domain
-  "https://www.moondreamer.app", // production domain with www
-  "https://precious-determination-production.up.railway.app",
-  
-  process.env.FRONTEND_URL,  // Railway frontend URL (backup)
-].filter(Boolean); // removes undefined values
+  "http://localhost:5173",
+  "http://localhost:3001",
+  "https://moondreamer.app",
+  "https://www.moondreamer.app",
+  "https://precious-determination-production.up.railway.app", // NEW URL
+  process.env.FRONTEND_URL,
+].filter(Boolean);
 
 app.use(
   cors({
