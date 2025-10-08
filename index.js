@@ -25,43 +25,31 @@ mongoose
   .then(() => console.log("✅ Connected to MongoDB"))
   .catch((err) => {
     console.error("❌ MongoDB connection error:", err);
-    process.exit(1);
+    process.exit(1); // stop server if DB connection fails
   });
 
 const app = express();
 
 const allowedOrigins = [
-<<<<<<< HEAD
-  "http://localhost:5173",
-  "http://localhost:3001",
-  "https://precious-determination-production.up.railway.app", // frontend
-  process.env.FRONTEND_URL,
-].filter(Boolean);
-=======
   "http://localhost:5174",   // local frontend
+  "http://localhost:5173",   // local frontend
   "http://localhost:3001",   // local backend
 ];
-      
->>>>>>> parent of 65cf90d (change dockerfile)
 
-// ✅ CORS middleware (keep it at the very top)
-const corsOptions = {
-  origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error("Not allowed by CORS"));
-    }
-  },
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-};
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
+  })
+);
 
-app.use(cors(corsOptions));
-
-// ✅ Add this line: explicitly handle preflight requests for all routes
-app.options("*", cors(corsOptions));
+// app.use(cors({ origin: true, credentials: true }));
 
 app.use(express.json());
 
@@ -81,5 +69,17 @@ app.use("/api/insights", aiInsightRoutes);
 
 app.use(errorHandler);
 
+
+if (process.env.NODE_ENV === "production") {
+  const frontendPath = path.join(__dirname, "frontend-dist"); // <- matches Docker
+
+  app.use(express.static(frontendPath));
+
+  app.get("*", (req, res) => {
+    res.sendFile(path.join(frontendPath, "index.html"));
+  });
+}
+
+// Start server Render
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
