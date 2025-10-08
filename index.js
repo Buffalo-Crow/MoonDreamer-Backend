@@ -31,11 +31,18 @@ mongoose
 const app = express();
 
 const allowedOrigins = [
+<<<<<<< HEAD
   "http://localhost:5173",
   "http://localhost:3001",
   "https://precious-determination-production.up.railway.app", // frontend
   process.env.FRONTEND_URL,
 ].filter(Boolean);
+=======
+  "http://localhost:5174",   // local frontend
+  "http://localhost:3001",   // local backend
+];
+      
+>>>>>>> parent of 65cf90d (change dockerfile)
 
 // ✅ CORS middleware (keep it at the very top)
 const corsOptions = {
