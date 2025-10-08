@@ -33,8 +33,6 @@ const app = express();
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:3001",
-  "https://moondreamer.app",
-  "https://www.moondreamer.app",
   "https://precious-determination-production.up.railway.app", // NEW URL
   process.env.FRONTEND_URL,
 ].filter(Boolean);
