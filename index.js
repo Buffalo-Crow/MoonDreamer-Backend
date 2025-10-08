@@ -25,7 +25,7 @@ mongoose
   .then(() => console.log("✅ Connected to MongoDB"))
   .catch((err) => {
     console.error("❌ MongoDB connection error:", err);
-    process.exit(1); // stop server if DB connection fails
+    process.exit(1);
   });
 
 const app = express();
@@ -33,24 +33,28 @@ const app = express();
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:3001",
-  "https://precious-determination-production.up.railway.app", // NEW URL
+  "https://precious-determination-production.up.railway.app", // frontend
   process.env.FRONTEND_URL,
 ].filter(Boolean);
 
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
-    credentials: true,
-  })
-);
+// ✅ CORS middleware (keep it at the very top)
+const corsOptions = {
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+};
 
-// app.use(cors({ origin: true, credentials: true }));
+app.use(cors(corsOptions));
+
+// ✅ Add this line: explicitly handle preflight requests for all routes
+app.options("*", cors(corsOptions));
 
 app.use(express.json());
 
