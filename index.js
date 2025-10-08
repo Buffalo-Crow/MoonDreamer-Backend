@@ -25,7 +25,7 @@ mongoose
   .then(() => console.log("✅ Connected to MongoDB"))
   .catch((err) => {
     console.error("❌ MongoDB connection error:", err);
-    process.exit(1); // stop server if DB connection fails
+    process.exit(1); 
   });
 
 const app = express();
@@ -49,8 +49,6 @@ app.use(
   })
 );
 
-// app.use(cors({ origin: true, credentials: true }));
-
 app.use(express.json());
 
 // Log incoming requests
@@ -69,16 +67,6 @@ app.use("/api/insights", aiInsightRoutes);
 
 app.use(errorHandler);
 
-
-if (process.env.NODE_ENV === "production") {
-  const frontendPath = path.join(__dirname, "frontend-dist"); // <- matches Docker
-
-  app.use(express.static(frontendPath));
-
-  app.get("*", (req, res) => {
-    res.sendFile(path.join(frontendPath, "index.html"));
-  });
-}
 
 // Start server Render
 const PORT = process.env.PORT || 3001;
