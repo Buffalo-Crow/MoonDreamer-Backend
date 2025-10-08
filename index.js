@@ -34,6 +34,7 @@ const allowedOrigins = [
   "http://localhost:5174",   // local frontend
   "http://localhost:5173",   // local frontend
   "http://localhost:3001",   // local backend
+  "https://moondreamer-frontend-production.up.railway.app",
 ];
 
 app.use(
