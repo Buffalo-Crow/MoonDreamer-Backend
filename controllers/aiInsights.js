@@ -131,8 +131,90 @@ const generateCommunityInsight = async (req, res, next) => {
   }
 };
 
+const saveInsight = async (req, res, next) => {
+  try {
+    const { dreamIds, summary, scope = "single" } = req.body;
+
+    if (!dreamIds || !dreamIds.length || !summary) {
+      return res.status(400).json({ message: "dreamIds and summary are required" });
+    }
+
+    // Verify that all dreams belong to the user
+    const dreams = await Dream.find({ 
+      _id: { $in: dreamIds }, 
+      userId: req.user._id 
+    });
+
+    if (dreams.length !== dreamIds.length) {
+      return res.status(403).json({ message: "Unauthorized access to one or more dreams" });
+    }
+
+    const insight = await AIInsight.create({
+      userId: req.user._id,
+      dreamIds,
+      summary,
+      tags: [],
+      scope,
+      model: MODELS.SINGLE,
+      moonSign: dreams[0].moonSign || null,
+    });
+
+    res.status(201).json({ 
+      message: "Insight saved successfully",
+      insight 
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+const getDreamInsights = async (req, res, next) => {
+  try {
+    const dreamId = req.params.dreamId;
+    
+    // Verify dream belongs to user
+    const dream = await Dream.findOne({ 
+      _id: dreamId, 
+      userId: req.user._id 
+    }).orFail();
+
+    // Find all insights for this dream
+    const insights = await AIInsight.find({
+      dreamIds: dreamId,
+      userId: req.user._id
+    }).sort({ createdAt: -1 }); // Most recent first
+
+    res.json({ insights });
+  } catch (err) {
+    if (err.name === "DocumentNotFoundError") {
+      return res.status(404).json({ message: "Dream not found" });
+    }
+    next(err);
+  }
+};
+
+const deleteInsight = async (req, res, next) => {
+  try {
+    const insightId = req.params.id;
+
+    const insight = await AIInsight.findOne({ _id: insightId, userId: req.user._id }).orFail();
+
+    await AIInsight.deleteOne({ _id: insightId });
+
+    res.json({ message: "Insight deleted successfully", insightId });
+  } catch (err) {
+    if (err.name === "DocumentNotFoundError") {
+      return res.status(404).json({ message: "Insight not found or unauthorized" });
+    }
+    next(err);
+  }
+};
+
 module.exports = {
   generateSingleInsight,
   generateUserPatternInsight,
   generateCommunityInsight,
+  saveInsight,
+  getDreamInsights,
+  deleteInsight,
 };
