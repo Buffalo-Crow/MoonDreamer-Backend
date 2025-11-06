@@ -4,7 +4,7 @@ const validator = require("validator");
 const dreamSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
+    ref: "user",
     required: true,
   },
 
@@ -52,6 +52,30 @@ const dreamSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  isPublic: {
+    type: Boolean,
+    default: false,
+  },
+  likes: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "user",
+  }],
+  comments: [{
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "user",
+      required: true,
+    },
+    text: {
+      type: String,
+      required: true,
+      maxlength: 500,
+    },
+    date: {
+      type: Date,
+      default: Date.now,
+    },
+  }],
 });
 
 module.exports = mongoose.model("dream", dreamSchema);
