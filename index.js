@@ -3,6 +3,7 @@ const cors = require("cors");
 const dotenv = require("dotenv");
 const path = require("path");
 const mongoose = require("mongoose");
+const helmet = require("helmet");
 const errorHandler = require("./middleware/error");
 
 dotenv.config();
@@ -29,6 +30,7 @@ mongoose
   });
 
 const app = express();
+app.use(helmet());
 
 const allowedOrigins = [
   "http://localhost:5174",   // local frontend
