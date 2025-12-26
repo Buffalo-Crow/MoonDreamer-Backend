@@ -22,6 +22,8 @@ const generateSingleInsight = async (req, res, next) => {
     const prompt = `
 Dream summary: ${dream.summary || "No summary provided."}
 Moon sign: ${dream.moonSign || "Unknown"}
+Categories: ${dream.categories && dream.categories.length > 0 ? dream.categories.join(", ") : "None"}
+Tags: ${dream.tags && dream.tags.length > 0 ? dream.tags.join(", ") : "None"}
 
 Please provide an analysis of this dream with reference to the moon sign and any symbolic or psychological patterns.
     `;
@@ -69,7 +71,13 @@ const generateUserPatternInsight = async (req, res, next) => {
       return res.status(404).json({ message: "No dreams found" });
     }
 
-    const combinedText = dreams.map((d) => d.summary).join("\n\n");
+    const combinedText = dreams.map((d, index) => `
+Dream ${index + 1}:
+- Summary: ${d.summary}
+- Moon sign: ${d.moonSign || "Unknown"}
+- Categories: ${d.categories && d.categories.length > 0 ? d.categories.join(", ") : "None"}
+- Tags: ${d.tags && d.tags.length > 0 ? d.tags.join(", ") : "None"}
+`).join("\n");
 
     const aiSummary = await generateAIText(
       combinedText,

@@ -14,10 +14,10 @@ const generateAIText = async (
 
   if (scope === "single") {
     systemPrompt =
-      "You are an AI that analyzes a single dream, the anaylsis will be seen through a spiritual yet grounded lens Summarize the dream in 2-3 paragrahs with 3-4 sentences each and highlight key themes based on the Moon sign the dream occured in. ";
+      "You are an AI that analyzes a single dream, the anaylsis will be seen through a spiritual yet grounded lens Summarize the dream in 2-3 paragrahs with 3-4 sentences each and highlight key themes based on the Moon sign the dream occured in. Strongly consider the dream's categories and tags to provide deeper context and insights in your calculations. Address the dreamer as 'you'";
   } else if (scope === "user-pattern") {
     systemPrompt =
-      "You are an AI that analyzes multiple dreams from the same user. Identify recurring patterns and trends over time, focusing on the correlation between the Moon signs and dream content.";
+      "You are an AI that analyzes multiple dreams from the same user. Identify recurring patterns and trends over time, focusing on the correlation between the Moon signs, categories, tags, and dream content.";
   } else if (scope === "community-pattern") {
     systemPrompt =
       "You are an AI that analyzes dreams from multiple users. Identify collective themes and Moon sign trends across the community.";
