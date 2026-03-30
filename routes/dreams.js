@@ -9,6 +9,8 @@ const {
   getPublicDreams,
   toggleLike,
   addComment,
+  deleteComment,
+  toggleCommentLike,
 } = require("../controllers/userDreams");
 
 const router = express.Router();
@@ -28,6 +30,10 @@ router.delete("/:id", deleteDream); // Delete a dream by ID
 
 // Social interaction routes
 router.post("/:dreamId/like", toggleLike); // Toggle like on a dream
-router.post("/:dreamId/comment", addComment); // Add comment to a dream
+router.post("/:dreamId/comment", tokenAuthorization, addComment); // Add comment to a dream
+
+// Comment routes
+router.delete("/:dreamId/comment/:commentId", tokenAuthorization, deleteComment);
+router.post("/:dreamId/comment/:commentId/like", tokenAuthorization, toggleCommentLike);
 
 module.exports = router;

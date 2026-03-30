@@ -15,10 +15,6 @@ const aiInsightRoutes = require("./routes/aiInsights");
 const dreamRoutes = require("./routes/dreams");
 const uploadAvatar = require("./routes/uploadAvatar");
 
-if (!process.env.JWT_SECRET) {
-  console.error("❌ Missing JWT_SECRET in environment variables");
-  process.exit(1);
-}
 
 //  Connect to MongoDB
 mongoose

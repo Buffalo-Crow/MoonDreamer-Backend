@@ -179,27 +179,90 @@ const addComment = (req, res, next) => {
     return next(new BadRequestError("Comment text is required"));
   }
 
+  return Dream.findById(dreamId)
+    .then((dream) => {
+      if (!dream) {
+        throw new NotFoundError("Dream not found");
+      }
+      dream.comments.push({ user: userId, text: text.trim() });
+      return dream.save();
+    })
+    .then((dream) =>
+      Dream.findById(dream._id)
+        .populate("userId", "username avatar")
+        .populate("comments.user", "username avatar")
+    )
+    .then((dream) => res.status(200).send(dream))
+    .catch(next);
+};
+
+// Delete a comment (only comment author or dream owner)
+const deleteComment = (req, res, next) => {
+  const { dreamId, commentId } = req.params;
+  const userId = req.user._id.toString();
+
   Dream.findById(dreamId)
     .then((dream) => {
       if (!dream) {
         throw new NotFoundError("Dream not found");
       }
-      
-      // Add new comment
-      dream.comments.push({
-        user: userId,
-        text: text.trim(),
-        date: new Date(),
-      });
-      
+
+      const comment = dream.comments.id(commentId);
+      if (!comment) {
+        throw new NotFoundError("Comment not found");
+      }
+
+      // Only allow the comment author or the dream owner to delete
+      const isCommentAuthor = comment.user.toString() === userId;
+      const isDreamOwner = dream.userId.toString() === userId;
+
+      if (!isCommentAuthor && !isDreamOwner) {
+        throw new BadRequestError("You are not authorized to delete this comment");
+      }
+
+      comment.deleteOne();
       return dream.save();
     })
+    .then((dream) =>
+      Dream.findById(dream._id)
+        .populate("userId", "username avatar")
+        .populate("comments.user", "username avatar")
+    )
+    .then((dream) => res.status(200).send(dream))
+    .catch(next);
+};
+
+// Toggle like on a comment
+const toggleCommentLike = (req, res, next) => {
+  const { dreamId, commentId } = req.params;
+  const userId = req.user._id;
+
+  Dream.findById(dreamId)
     .then((dream) => {
-      // Populate the comment user data before sending back
-      return Dream.findById(dream._id)
-        .populate('comments.user', 'username avatar');
+      if (!dream) {
+        throw new NotFoundError("Dream not found");
+      }
+
+      const comment = dream.comments.id(commentId);
+      if (!comment) {
+        throw new NotFoundError("Comment not found");
+      }
+
+      const likeIndex = comment.likes.indexOf(userId);
+      if (likeIndex === -1) {
+        comment.likes.push(userId);
+      } else {
+        comment.likes.splice(likeIndex, 1);
+      }
+
+      return dream.save();
     })
-    .then((dream) => res.status(201).send(dream))
+    .then((dream) =>
+      Dream.findById(dream._id)
+        .populate("userId", "username avatar")
+        .populate("comments.user", "username avatar")
+    )
+    .then((dream) => res.status(200).send(dream))
     .catch(next);
 };
 
@@ -212,4 +275,6 @@ module.exports = {
   getPublicDreams,
   toggleLike,
   addComment,
+  deleteComment,
+  toggleCommentLike,
 };

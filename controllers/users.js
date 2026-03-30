@@ -1,22 +1,15 @@
 const User = require("../models/members");
-const bcrypt = require("bcryptjs");
 const BadRequestError = require("../utils/errorClasses/badRequest");
 const NotFoundError = require("../utils/errorClasses/notFound");
 const ConflictError = require("../utils/errorClasses/conflict");
 
 const getCurrentUser = (req, res, next) => {
-  const { _id: userId } = req.user;
+  const { firebaseUid } = req.user;
 
-  User.findById(userId)
+  User.findOne({ firebaseUid })
     .orFail()
-    .then((user) => {
-      res.status(200).send(user);
-    })
-
+    .then((user) => res.status(200).send(user))
     .catch((err) => {
-      if (err.name === "CastError") {
-        return next(new BadRequestError("Invalid user ID format"));
-      }
       if (err.name === "DocumentNotFoundError") {
         return next(new NotFoundError("User not found"));
       }
@@ -24,43 +17,49 @@ const getCurrentUser = (req, res, next) => {
     });
 };
 
-const signup = async (req, res, next ) => {
-  const { username, email, password, avatar } = req.body;
-  if (!email || !password) {
-    next(new BadRequestError("Email and password are required"));
-    return;
+const signup = async (req, res, next) => {
+  const { firebaseUid } = req.user;
+  const { username, email, avatar } = req.body;
+
+  if (!email || !username || !avatar) {
+    return next(new BadRequestError("All fields are required"));
   }
-  bcrypt
-    .hash(password, 10)
-    .then((hash) => User.create({ username, email, password: hash, avatar }))
-    .then((user) => {
-      const userObject = user.toObject();
-      delete userObject.password;
-      res.status(201).send(userObject);
-    })
-    .catch((err) => {
-      console.error(err);
-      if (err.name === "ValidationError") {
-        return next(new BadRequestError("Invalid Request"));
+
+  try {
+    const user = await User.create({ firebaseUid, username, email, avatar });
+    return res.status(201).send(user);
+  } catch (err) {
+    if (err.name === "ValidationError") {
+      return next(new BadRequestError("Invalid Request"));
+    }
+    if (err.code === 11000) {
+      // Check if a user with this email already exists (Google ↔ email/password linking)
+      const existingUser = await User.findOne({ email });
+      if (existingUser && existingUser.firebaseUid !== firebaseUid) {
+        existingUser.firebaseUid = firebaseUid;
+        await existingUser.save();
+        return res.status(200).send(existingUser);
       }
-      if (err.code === 11000) {
-        return next(new ConflictError("Email already exists"));
+      // Same firebaseUid already exists — return the existing user
+      if (existingUser) {
+        return res.status(200).send(existingUser);
       }
-      return next(err);
-    });
+      return next(new ConflictError("User already exists"));
+    }
+    return next(err);
   }
+};
 
 const updateUser = (req, res, next) => {
   const { username, avatar } = req.body;
-  User.findByIdAndUpdate(
-    req.user._id,
+
+  User.findOneAndUpdate(
+    { firebaseUid: req.user.firebaseUid },
     { username, avatar },
     { new: true, runValidators: true }
   )
     .orFail()
-    .then((user) => {
-      res.status(200).send({ data: user });
-    })
+    .then((user) => res.status(200).send({ data: user }))
     .catch((err) => {
       if (err.name === "ValidationError") {
         return next(new BadRequestError("Invalid Request"));
@@ -68,15 +67,8 @@ const updateUser = (req, res, next) => {
       if (err.name === "DocumentNotFoundError") {
         return next(new NotFoundError("User not found"));
       }
-      if (err.name === "CastError") {
-        return next(new BadRequestError("Invalid user ID format"));
-      }
       return next(err);
     });
 };
 
-module.exports = {
-  signup,
-  getCurrentUser,
-  updateUser,
-};
+module.exports = { signup, getCurrentUser, updateUser };
