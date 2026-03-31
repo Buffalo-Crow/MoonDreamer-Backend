@@ -2,13 +2,63 @@ const admin = require("firebase-admin");
 const UnauthorizedError = require("../utils/errorClasses/unauthorized");
 const User = require("../models/members");
 
+const unwrapQuoted = (value) => {
+  if (typeof value !== "string") {
+    return value;
+  }
+
+  const trimmed = value.trim();
+  if (
+    (trimmed.startsWith("\"") && trimmed.endsWith("\""))
+    || (trimmed.startsWith("'") && trimmed.endsWith("'"))
+  ) {
+    return trimmed.slice(1, -1);
+  }
+
+  return trimmed;
+};
+
+const loadFirebaseServiceAccount = () => {
+  const rawJson = process.env.FIREBASE_SERVICE_ACCOUNT || process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
+
+  if (rawJson) {
+    try {
+      const parsed = JSON.parse(rawJson);
+      return {
+        projectId: parsed.project_id || parsed.projectId,
+        clientEmail: parsed.client_email || parsed.clientEmail,
+        privateKey: (parsed.private_key || parsed.privateKey || "").replace(/\\n/g, "\n"),
+      };
+    } catch (error) {
+      throw new Error("FIREBASE_SERVICE_ACCOUNT(_JSON) is present but is not valid JSON");
+    }
+  }
+
+  return {
+    projectId: unwrapQuoted(process.env.FIREBASE_PROJECT_ID),
+    clientEmail: unwrapQuoted(process.env.FIREBASE_CLIENT_EMAIL),
+    privateKey: unwrapQuoted(process.env.FIREBASE_PRIVATE_KEY)?.replace(/\\n/g, "\n"),
+  };
+};
+
 if (!admin.apps.length) {
+  const serviceAccount = loadFirebaseServiceAccount();
+  const missing = [
+    !serviceAccount.projectId && "FIREBASE_PROJECT_ID",
+    !serviceAccount.clientEmail && "FIREBASE_CLIENT_EMAIL",
+    !serviceAccount.privateKey && "FIREBASE_PRIVATE_KEY",
+  ].filter(Boolean);
+
+  if (missing.length) {
+    throw new Error(
+      `Missing Firebase credential env vars: ${missing.join(", ")}. `
+      + "Set split vars (FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY) "
+      + "or provide FIREBASE_SERVICE_ACCOUNT(_JSON)."
+    );
+  }
+
   admin.initializeApp({
-    credential: admin.credential.cert({
-      projectId: process.env.FIREBASE_PROJECT_ID,
-      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
-    }),
+    credential: admin.credential.cert(serviceAccount),
   });
 }
 
