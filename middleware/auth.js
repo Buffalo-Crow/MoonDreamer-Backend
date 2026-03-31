@@ -50,10 +50,15 @@ if (!admin.apps.length) {
   ].filter(Boolean);
 
   if (missing.length) {
+    const visibleFirebaseKeys = Object.keys(process.env)
+      .filter((key) => key.startsWith("FIREBASE"))
+      .sort();
+
     throw new Error(
       `Missing Firebase credential env vars: ${missing.join(", ")}. `
       + "Set split vars (FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY) "
-      + "or provide FIREBASE_SERVICE_ACCOUNT(_JSON)."
+      + "or provide FIREBASE_SERVICE_ACCOUNT(_JSON). "
+      + `Visible FIREBASE keys in runtime: ${visibleFirebaseKeys.join(", ") || "(none)"}.`
     );
   }
 
