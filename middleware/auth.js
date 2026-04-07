@@ -18,38 +18,8 @@ const unwrapQuoted = (value) => {
   return trimmed;
 };
 
-const pickFirstNonEmptyEnv = (...names) => {
-  for (const name of names) {
-    const value = process.env[name];
-    if (typeof value === "string" && value.trim() !== "") {
-      return value;
-    }
-  }
-
-  return undefined;
-};
-
-const decodeBase64 = (value) => {
-  if (typeof value !== "string" || value.trim() === "") {
-    return undefined;
-  }
-
-  try {
-    return Buffer.from(value, "base64").toString("utf8");
-  } catch {
-    return undefined;
-  }
-};
-
 const loadFirebaseServiceAccount = () => {
-  const rawJson =
-    pickFirstNonEmptyEnv(
-      "FIREBASE_SERVICE_ACCOUNT",
-      "FIREBASE_SERVICE_ACCOUNT_JSON",
-      "GOOGLE_SERVICE_ACCOUNT_JSON",
-      "FIREBASE_CREDENTIALS_JSON"
-    )
-    || decodeBase64(pickFirstNonEmptyEnv("FIREBASE_SERVICE_ACCOUNT_BASE64", "GOOGLE_SERVICE_ACCOUNT_BASE64"));
+  const rawJson = process.env.FIREBASE_SERVICE_ACCOUNT || process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
 
   if (rawJson) {
     try {
@@ -72,15 +42,9 @@ const loadFirebaseServiceAccount = () => {
   }
 
   return {
-    projectId: unwrapQuoted(
-      pickFirstNonEmptyEnv("FIREBASE_PROJECT_ID", "GOOGLE_CLOUD_PROJECT", "GCLOUD_PROJECT")
-    ),
-    clientEmail: unwrapQuoted(
-      pickFirstNonEmptyEnv("FIREBASE_CLIENT_EMAIL", "GOOGLE_CLIENT_EMAIL")
-    ),
-    privateKey: unwrapQuoted(
-      pickFirstNonEmptyEnv("FIREBASE_PRIVATE_KEY", "GOOGLE_PRIVATE_KEY")
-    )?.replace(/\\n/g, "\n"),
+    projectId: unwrapQuoted(process.env.FIREBASE_PROJECT_ID),
+    clientEmail: unwrapQuoted(process.env.FIREBASE_CLIENT_EMAIL),
+    privateKey: unwrapQuoted(process.env.FIREBASE_PRIVATE_KEY)?.replace(/\\n/g, "\n"),
   };
 };
 
@@ -94,35 +58,14 @@ if (!admin.apps.length) {
 
   if (missing.length) {
     const visibleFirebaseKeys = Object.keys(process.env)
-      .filter((key) => key.startsWith("FIREBASE") || key.startsWith("GOOGLE") || key.startsWith("GCLOUD"))
+      .filter((key) => key.startsWith("FIREBASE"))
       .sort();
-
-    const trackedEnvNames = [
-      "FIREBASE_PROJECT_ID",
-      "FIREBASE_CLIENT_EMAIL",
-      "FIREBASE_PRIVATE_KEY",
-      "FIREBASE_SERVICE_ACCOUNT",
-      "FIREBASE_SERVICE_ACCOUNT_JSON",
-      "FIREBASE_SERVICE_ACCOUNT_BASE64",
-      "GOOGLE_CLOUD_PROJECT",
-      "GCLOUD_PROJECT",
-      "GOOGLE_CLIENT_EMAIL",
-      "GOOGLE_PRIVATE_KEY",
-      "GOOGLE_SERVICE_ACCOUNT_JSON",
-      "GOOGLE_SERVICE_ACCOUNT_BASE64",
-    ];
-
-    const presentEnvSummary = trackedEnvNames
-      .filter((name) => typeof process.env[name] === "string")
-      .map((name) => `${name}(len=${process.env[name].length})`)
-      .join(", ");
 
     throw new Error(
       `Missing Firebase credential env vars: ${missing.join(", ")}. `
       + "Set split vars (FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY) "
       + "or provide FIREBASE_SERVICE_ACCOUNT(_JSON). "
-      + `Visible related keys in runtime: ${visibleFirebaseKeys.join(", ") || "(none)"}. `
-      + `Present tracked vars: ${presentEnvSummary || "(none)"}.`
+      + `Visible FIREBASE keys in runtime: ${visibleFirebaseKeys.join(", ") || "(none)"}.`
     );
   }
 
