@@ -1,6 +1,6 @@
 const Dream = require("../models/dreams");
 const AIInsight = require ("../models/insights");
-const { generateAIText } = require("../services/aiService");
+const { generateAIText, generateAITextStream } = require("../services/aiService");
 
 
 const MODELS = {
@@ -55,6 +55,78 @@ Please provide an analysis of this dream with reference to the moon sign and any
       return res.status(404).json({ message: "Dream not found" });
     }
     next(err);
+  }
+};
+
+const generateSingleInsightStream = async (req, res, next) => {
+  const sendStreamEvent = (event, payload) => {
+    res.write(`event: ${event}\n`);
+    res.write(`data: ${JSON.stringify(payload)}\n\n`);
+  };
+
+  try {
+    const dreamId = req.params.id;
+    const dream = await Dream.findOne({ _id: dreamId, userId: req.user._id }).orFail();
+
+    const prompt = `
+Dream summary: ${dream.summary || "No summary provided."}
+Moon sign: ${dream.moonSign || "Unknown"}
+Categories: ${dream.categories && dream.categories.length > 0 ? dream.categories.join(", ") : "None"}
+Tags: ${dream.tags && dream.tags.length > 0 ? dream.tags.join(", ") : "None"}
+
+Please provide an analysis of this dream with reference to the moon sign and any symbolic or psychological patterns.
+    `;
+
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+    res.setHeader("X-Accel-Buffering", "no");
+
+    if (typeof res.flushHeaders === "function") {
+      res.flushHeaders();
+    }
+
+    const aiSummary = await generateAITextStream(
+      prompt,
+      (token) => {
+        sendStreamEvent("chunk", { token });
+      },
+      MODELS.SINGLE,
+      "single",
+      500
+    );
+
+    const insight = await AIInsight.create({
+      userId: req.user._id,
+      dreamIds: [dream._id],
+      summary: aiSummary,
+      tags: [],
+      scope: "single",
+      model: MODELS.SINGLE,
+      moonSign: dream.moonSign || null,
+    });
+
+    sendStreamEvent("done", {
+      aiResult: insight.summary,
+      moonSign: insight.moonSign,
+      insight,
+    });
+
+    res.end();
+  } catch (err) {
+    if (res.headersSent) {
+      const message = err.name === "DocumentNotFoundError"
+        ? "Dream not found"
+        : "Failed to stream insight";
+      sendStreamEvent("error", { message });
+      return res.end();
+    }
+
+    if (err.name === "DocumentNotFoundError") {
+      return res.status(404).json({ message: "Dream not found" });
+    }
+
+    return next(err);
   }
 };
 
@@ -220,6 +292,7 @@ const deleteInsight = async (req, res, next) => {
 
 module.exports = {
   generateSingleInsight,
+  generateSingleInsightStream,
   generateUserPatternInsight,
   generateCommunityInsight,
   saveInsight,

@@ -2,6 +2,7 @@ const express = require("express");
 const tokenAuthorization = require("../middleware/auth");
 const {
   generateSingleInsight,
+  generateSingleInsightStream,
   generateUserPatternInsight,
   generateCommunityInsight,
   saveInsight,
@@ -12,6 +13,7 @@ const {
 const router = express.Router();
 
 router.post("/single/:id", tokenAuthorization, generateSingleInsight);
+router.post("/single/:id/stream", tokenAuthorization, generateSingleInsightStream);
 router.post("/user-pattern", tokenAuthorization, generateUserPatternInsight);
 router.post("/community", tokenAuthorization, generateCommunityInsight);
 router.post("/save", tokenAuthorization, saveInsight);
