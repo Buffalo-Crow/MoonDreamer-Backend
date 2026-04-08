@@ -34,6 +34,33 @@ const userSchema = new mongoose.Schema({
       message: "You must enter a valid Url",
     },
   },
+  betaAgreement: {
+    accepted: {
+      type: Boolean,
+      required: true,
+      default: false,
+    },
+    version: {
+      type: String,
+      required: true,
+    },
+    title: {
+      type: String,
+      required: true,
+    },
+    acceptedAt: {
+      type: Date,
+      required: true,
+    },
+    acceptedFromIp: {
+      type: String,
+      default: null,
+    },
+    acceptedUserAgent: {
+      type: String,
+      default: null,
+    },
+  },
 });
 
 module.exports = mongoose.model("user", userSchema);

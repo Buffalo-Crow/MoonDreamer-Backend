@@ -32,7 +32,7 @@ Please provide an analysis of this dream with reference to the moon sign and any
       prompt,
       MODELS.SINGLE,
       "single",
-      500
+      350
     );
 
     const insight = await AIInsight.create({
@@ -93,7 +93,7 @@ Please provide an analysis of this dream with reference to the moon sign and any
       },
       MODELS.SINGLE,
       "single",
-      500
+      350
     );
 
     const insight = await AIInsight.create({
