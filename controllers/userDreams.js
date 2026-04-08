@@ -2,6 +2,23 @@ const Dream = require("../models/dreams");
 const NotFoundError = require("../utils/errorClasses/notFound");
 const BadRequestError = require("../utils/errorClasses/badRequest");
 
+const normalizeTags = (tags) => {
+  if (Array.isArray(tags)) {
+    return tags
+      .map((tag) => String(tag).trim().replace(/^#+/, ""))
+      .filter(Boolean);
+  }
+
+  if (typeof tags !== "string" || !tags.trim()) {
+    return [];
+  }
+
+  return tags
+    .split(/[\s,]+/)
+    .map((tag) => tag.trim().replace(/^#+/, ""))
+    .filter(Boolean);
+};
+
 const createDream = (req, res, next) => {
   const { date, summary, categories, tags, location, moonSign, isPublic } = req.body;
 
@@ -14,11 +31,7 @@ const createDream = (req, res, next) => {
     ? categories.split(',').map((s) => s.trim()).filter(Boolean)
     : [];
 
-  const tagsArr = Array.isArray(tags)
-    ? tags
-    : typeof tags === "string" && tags.trim()
-    ? tags.split(',').map((s) => s.trim()).filter(Boolean)
-    : [];
+  const tagsArr = normalizeTags(tags);
 
   const dreamData = {
     userId: req.user._id,
@@ -74,11 +87,7 @@ const updateDream = (req, res, next) => {
     ? categories.split(',').map((s) => s.trim()).filter(Boolean)
     : [];
 
-  const tagsArr = Array.isArray(tags)
-    ? tags
-    : typeof tags === "string" && tags.trim()
-    ? tags.split(',').map((s) => s.trim()).filter(Boolean)
-    : [];
+  const tagsArr = normalizeTags(tags);
 
   Dream.findOneAndUpdate(
     { _id: req.params.id, userId: req.user._id },
