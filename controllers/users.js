@@ -4,7 +4,7 @@ const NotFoundError = require("../utils/errorClasses/notFound");
 const ConflictError = require("../utils/errorClasses/conflict");
 
 const BETA_AGREEMENT_VERSION = "2026-04";
-const BETA_AGREEMENT_TITLE = "Dream Journal Beta User Agreement";
+const BETA_AGREEMENT_TITLE = "MoonDreamer Beta User Agreement";
 
 const buildBetaAgreementRecord = (req, betaAgreementAcceptance) => ({
   accepted: true,
