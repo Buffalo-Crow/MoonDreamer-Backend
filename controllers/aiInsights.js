@@ -6,7 +6,6 @@ const { generateAIText, generateAITextStream } = require("../services/aiService"
 const MODELS = {
   SINGLE: process.env.ANTHROPIC_MODEL_SINGLE || "claude-3-5-haiku-20241022",
   USER: process.env.ANTHROPIC_MODEL_USER || "claude-3-7-sonnet-20250219",
-  COMMUNITY: process.env.ANTHROPIC_MODEL_COMMUNITY || "claude-3-7-sonnet-20250219",
 };
 
 /**
@@ -173,44 +172,6 @@ Dream ${index + 1}:
   }
 };
 
-/**
- * Generate AI insight across the community (admin or cron job)
- */
-const generateCommunityInsight = async (req, res, next) => {
-  try {
-    const { dreamIds } = req.body;
-
-    const query = dreamIds && dreamIds.length ? { _id: { $in: dreamIds } } : {};
-    const dreams = await Dream.find(query);
-
-    if (!dreams.length) {
-      return res.status(404).json({ message: "No dreams found" });
-    }
-
-    const combinedText = dreams.map((d) => d.summary).join("\n\n");
-
-    const aiSummary = await generateAIText(
-      combinedText,
-      MODELS.COMMUNITY,
-      "community-pattern",
-      2000
-    );
-
-    const insight = await AIInsight.create({
-      userId: req.user._id, // could also be a "system" user
-      dreamIds: dreams.map((d) => d._id),
-      summary: aiSummary,
-      tags: [],
-      scope: "community-pattern",
-      model: MODELS.COMMUNITY,
-    });
-
-    res.status(201).json({ aiResult: insight.summary, insight });
-  } catch (err) {
-    next(err);
-  }
-};
-
 const saveInsight = async (req, res, next) => {
   try {
     const { dreamIds, summary, scope = "single" } = req.body;
@@ -294,7 +255,6 @@ module.exports = {
   generateSingleInsight,
   generateSingleInsightStream,
   generateUserPatternInsight,
-  generateCommunityInsight,
   saveInsight,
   getDreamInsights,
   deleteInsight,
