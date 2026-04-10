@@ -101,10 +101,27 @@ const signup = async (req, res, next) => {
 
 const updateUser = (req, res, next) => {
   const { username, avatar } = req.body;
+  const updates = {};
+
+  if (typeof username !== "undefined") {
+    const normalizedUsername = String(username).trim();
+    if (!normalizedUsername) {
+      return next(new BadRequestError("Username cannot be empty"));
+    }
+    updates.username = normalizedUsername;
+  }
+
+  if (typeof avatar !== "undefined") {
+    updates.avatar = avatar;
+  }
+
+  if (!Object.keys(updates).length) {
+    return next(new BadRequestError("At least one field is required"));
+  }
 
   User.findOneAndUpdate(
     { firebaseUid: req.user.firebaseUid },
-    { username, avatar },
+    updates,
     { new: true, runValidators: true }
   )
     .orFail()

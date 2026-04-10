@@ -101,4 +101,8 @@ const commentSchema = new mongoose.Schema({
   },
 });
 
+dreamSchema.index({ userId: 1, date: -1 });
+dreamSchema.index({ isPublic: 1, date: -1 });
+dreamSchema.index({ userId: 1, isPublic: 1, date: -1 });
+
 module.exports = mongoose.model("dream", dreamSchema);

@@ -22,7 +22,6 @@ const normalizeTags = (tags) => {
 const createDream = (req, res, next) => {
   const { date, summary, categories, tags, location, moonSign, isPublic } = req.body;
 
-  console.log("📝 Creating dream with data:", { date, summary, categories, tags, location, moonSign, isPublic });
 
   // Normalize categories/tags to arrays if sent as comma-separated strings
   const categoriesArr = Array.isArray(categories)

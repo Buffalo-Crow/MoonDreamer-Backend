@@ -4,9 +4,12 @@ const client = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
 
+const DEFAULT_MODEL =
+  process.env.ANTHROPIC_MODEL_DEFAULT || "claude-3-7-sonnet-20250219";
+
 const generateAIText = async (
   content,
-  model = "claude-3-sonnet-20240229", 
+  model = DEFAULT_MODEL,
   scope = "single",
   maxTokens = 500
 ) => {
@@ -39,7 +42,7 @@ const generateAIText = async (
     return response.content[0].text.trim();
   } catch (err) {
     console.error("Anthropic AI service error:", err);
-    throw new Error("AI service failed");
+    throw new Error(`AI service failed${model ? ` (model: ${model})` : ""}`);
   }
 };
 
@@ -62,7 +65,7 @@ const getSystemPrompt = (scope = "single") => {
 const generateAITextStream = async (
   content,
   onToken,
-  model = "claude-3-sonnet-20240229",
+  model = DEFAULT_MODEL,
   scope = "single",
   maxTokens = 500
 ) => {
@@ -100,7 +103,7 @@ const generateAITextStream = async (
     return fullText.trim();
   } catch (err) {
     console.error("Anthropic AI stream error:", err);
-    throw new Error("AI streaming service failed");
+    throw new Error(`AI streaming service failed${model ? ` (model: ${model})` : ""}`);
   }
 };
 
