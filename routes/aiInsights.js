@@ -1,5 +1,5 @@
 const express = require("express");
-const tokenAuthorization = require("../middleware/auth");
+const { tokenAuthorization } = require("../middleware/auth");
 const {
   generateSingleInsight,
   generateSingleInsightStream,

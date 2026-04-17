@@ -74,6 +74,7 @@ if (!admin.apps.length) {
   });
 }
 
+// Used for all routes that require an existing MongoDB user
 const tokenAuthorization = async (req, res, next) => {
   const { authorization } = req.headers;
 
@@ -104,4 +105,23 @@ const tokenAuthorization = async (req, res, next) => {
   }
 };
 
-module.exports = tokenAuthorization;
+// Used only for signup — verifies Firebase token without requiring an existing DB record
+const firebaseTokenOnly = async (req, res, next) => {
+  const { authorization } = req.headers;
+
+  if (!authorization || !authorization.startsWith("Bearer ")) {
+    return next(new UnauthorizedError("Authorization header is required"));
+  }
+
+  const token = authorization.replace("Bearer ", "");
+
+  try {
+    const decodedToken = await admin.auth().verifyIdToken(token);
+    req.user = { firebaseUid: decodedToken.uid, email: decodedToken.email };
+    return next();
+  } catch (err) {
+    return next(new UnauthorizedError("Invalid or expired token"));
+  }
+};
+
+module.exports = { tokenAuthorization, firebaseTokenOnly };
