@@ -77,13 +77,15 @@ const signup = async (req, res, next) => {
       return next(new BadRequestError("Invalid Request"));
     }
     if (err.code === 11000) {
-      // Check if a user with this email already exists (Google ↔ email/password linking)
+      // Duplicate key protection: never reassign a profile to a different Firebase UID.
+      // This keeps provider identities stable and prevents login regressions.
       const existingUser = await User.findOne({ email });
       if (existingUser && existingUser.firebaseUid !== firebaseUid) {
-        existingUser.firebaseUid = firebaseUid;
-        existingUser.betaAgreement = betaAgreement;
-        await existingUser.save();
-        return res.status(200).send(serializeUser(existingUser));
+        return next(
+          new ConflictError(
+            "An account with this email already exists. Please sign in with the original method for this account."
+          )
+        );
       }
       // Same firebaseUid already exists — return the existing user
       if (existingUser) {
@@ -137,4 +139,8 @@ const updateUser = (req, res, next) => {
     });
 };
 
-module.exports = { signup, getCurrentUser, updateUser };
+module.exports = {
+  signup,
+  getCurrentUser,
+  updateUser,
+};

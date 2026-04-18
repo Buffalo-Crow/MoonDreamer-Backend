@@ -1,5 +1,9 @@
 const express = require("express");
-const { getCurrentUser, updateUser, signup } = require("../controllers/users");
+const {
+	getCurrentUser,
+	updateUser,
+	signup,
+} = require("../controllers/users");
 const { tokenAuthorization, firebaseTokenOnly } = require("../middleware/auth");
 
 const router = express.Router();

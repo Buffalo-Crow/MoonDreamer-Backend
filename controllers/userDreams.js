@@ -1,4 +1,5 @@
 const Dream = require("../models/dreams");
+const User = require("../models/members");
 const NotFoundError = require("../utils/errorClasses/notFound");
 const BadRequestError = require("../utils/errorClasses/badRequest");
 
@@ -192,6 +193,7 @@ const addComment = (req, res, next) => {
   }
 
   return Dream.findById(dreamId)
+    .populate("userId", "username avatar")
     .then((dream) => {
       if (!dream) {
         throw new NotFoundError("Dream not found");
@@ -258,6 +260,10 @@ const toggleCommentLike = (req, res, next) => {
       const comment = dream.comments.id(commentId);
       if (!comment) {
         throw new NotFoundError("Comment not found");
+      }
+
+      if (!Array.isArray(comment.likes)) {
+        comment.likes = [];
       }
 
       const likeIndex = comment.likes.indexOf(userId);

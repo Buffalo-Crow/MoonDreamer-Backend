@@ -71,6 +71,12 @@ const dreamSchema = new mongoose.Schema({
       required: true,
       maxlength: 500,
     },
+    likes: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "user",
+      },
+    ],
     date: {
       type: Date,
       default: Date.now,
