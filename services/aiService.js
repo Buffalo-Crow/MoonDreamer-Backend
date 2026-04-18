@@ -117,7 +117,6 @@ const generateAIText = async (
             content: `${systemPrompt}\n\nDream Content:\n${content}`,
           },
         ],
-        temperature: 0.7,
       });
 
       return response.content[0].text.trim();
@@ -174,7 +173,6 @@ const generateAITextStream = async (
             content: `${systemPrompt}\n\nDream Content:\n${content}`,
           },
         ],
-        temperature: 0.7,
       });
 
       for await (const event of stream) {

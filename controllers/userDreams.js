@@ -51,7 +51,9 @@ const createDream = (req, res, next) => {
       console.error("❌ Dream creation error:", err);
       if (err.name === "ValidationError") {
         console.error("❌ Validation errors:", err.errors);
-        next(new BadRequestError("Invalid data provided"));
+        const firstErrorKey = Object.keys(err.errors)[0];
+        const errorMessage = err.errors[firstErrorKey].message;
+        next(new BadRequestError(errorMessage));
       } else {
         next(err);
       }
@@ -97,7 +99,9 @@ const updateDream = (req, res, next) => {
     .then((dream) => res.status(200).send(dream))
     .catch((err) => {
       if (err.name === "ValidationError") {
-        return next(new BadRequestError("Invalid data provided"));
+        const firstErrorKey = Object.keys(err.errors)[0];
+        const errorMessage = err.errors[firstErrorKey].message;
+        return next(new BadRequestError(errorMessage));
       }
       if (err.name === "DocumentNotFoundError") {
         return next(new NotFoundError("Dream not found"));
