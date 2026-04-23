@@ -16,8 +16,8 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// POST /api/upload-avatar
-router.post("/", upload.single("avatar"), async (req, res) => {
+// POST /api/upload-profile-picture
+router.post("/", upload.single("profilePicture"), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: "No file uploaded" });
@@ -26,7 +26,7 @@ router.post("/", upload.single("avatar"), async (req, res) => {
     // Upload to Cloudinary from memory buffer
     const result = await new Promise((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
-        { folder: "avatars" },
+        { folder: "profile-pictures" },
         (err, result) => {
           if (result) resolve(result);
           else reject(err);
@@ -35,7 +35,7 @@ router.post("/", upload.single("avatar"), async (req, res) => {
       streamifier.createReadStream(req.file.buffer).pipe(uploadStream);
     });
 
-    res.json({ avatar: result.secure_url });
+    res.json({ profilePicture: result.secure_url });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Upload failed" });

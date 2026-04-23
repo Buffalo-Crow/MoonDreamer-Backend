@@ -47,9 +47,9 @@ const getCurrentUser = (req, res, next) => {
 
 const signup = async (req, res, next) => {
   const { firebaseUid } = req.user;
-  const { username, email, avatar, betaAgreementAcceptance } = req.body;
+  const { username, email, profilePicture, betaAgreementAcceptance } = req.body;
 
-  if (!email || !username || !avatar) {
+  if (!email || !username || !profilePicture) {
     return next(new BadRequestError("All fields are required"));
   }
 
@@ -68,7 +68,7 @@ const signup = async (req, res, next) => {
       firebaseUid,
       username,
       email,
-      avatar,
+      profilePicture,
       betaAgreement,
     });
     return res.status(201).send(serializeUser(user));
@@ -102,7 +102,7 @@ const signup = async (req, res, next) => {
 };
 
 const updateUser = (req, res, next) => {
-  const { username, avatar } = req.body;
+  const { username, profilePicture } = req.body;
   const updates = {};
 
   if (typeof username !== "undefined") {
@@ -113,8 +113,8 @@ const updateUser = (req, res, next) => {
     updates.username = normalizedUsername;
   }
 
-  if (typeof avatar !== "undefined") {
-    updates.avatar = avatar;
+  if (typeof profilePicture !== "undefined") {
+    updates.profilePicture = profilePicture;
   }
 
   if (!Object.keys(updates).length) {

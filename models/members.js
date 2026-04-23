@@ -24,7 +24,7 @@ const userSchema = new mongoose.Schema({
       message: "You must enter a valid email address",
     },
   },
-  avatar: {
+  profilePicture: {
     type: String,
     required: [true, " This field is required."],
     validate: {

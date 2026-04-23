@@ -115,14 +115,14 @@ const updateDream = (req, res, next) => {
 // Public feed - returns dreams shared publicly
 const getPublicDreams = (req, res, next) => {
   Dream.find({ isPublic: true })
-    .populate('userId', 'username avatar')
-    .populate('comments.user', 'username avatar')
+    .populate('userId', 'username profilePicture')
+    .populate('comments.user', 'username profilePicture')
     .sort({ date: -1 }) // Most recent first
     .then((dreams) => {
       // Transform the data to match frontend expectations
       const formattedDreams = dreams.map(dream => ({
         ...dream.toObject(),
-        user: dream.userId || { _id: 'unknown', username: 'Anonymous', avatar: '' }
+        user: dream.userId || { _id: 'unknown', username: 'Anonymous', profilePicture: '' }
       }));
       res.status(200).send(formattedDreams);
     })
@@ -134,7 +134,7 @@ const getPublicDreams = (req, res, next) => {
         .then((dreams) => {
           const formattedDreams = dreams.map(dream => ({
             ...dream.toObject(),
-            user: { _id: 'unknown', username: 'Anonymous', avatar: '' }
+            user: { _id: 'unknown', username: 'Anonymous', profilePicture: '' }
           }));
           res.status(200).send(formattedDreams);
         })
@@ -193,7 +193,7 @@ const addComment = (req, res, next) => {
   }
 
   return Dream.findById(dreamId)
-    .populate("userId", "username avatar")
+    .populate("userId", "username profilePicture")
     .then((dream) => {
       if (!dream) {
         throw new NotFoundError("Dream not found");
@@ -203,8 +203,8 @@ const addComment = (req, res, next) => {
     })
     .then((dream) =>
       Dream.findById(dream._id)
-        .populate("userId", "username avatar")
-        .populate("comments.user", "username avatar")
+        .populate("userId", "username profilePicture")
+        .populate("comments.user", "username profilePicture")
     )
     .then((dream) => res.status(200).send(dream))
     .catch(next);
@@ -239,8 +239,8 @@ const deleteComment = (req, res, next) => {
     })
     .then((dream) =>
       Dream.findById(dream._id)
-        .populate("userId", "username avatar")
-        .populate("comments.user", "username avatar")
+        .populate("userId", "username profilePicture")
+        .populate("comments.user", "username profilePicture")
     )
     .then((dream) => res.status(200).send(dream))
     .catch(next);
@@ -277,8 +277,8 @@ const toggleCommentLike = (req, res, next) => {
     })
     .then((dream) =>
       Dream.findById(dream._id)
-        .populate("userId", "username avatar")
-        .populate("comments.user", "username avatar")
+        .populate("userId", "username profilePicture")
+        .populate("comments.user", "username profilePicture")
     )
     .then((dream) => res.status(200).send(dream))
     .catch(next);

@@ -13,7 +13,7 @@ const userRoutes = require("./routes/users");
 const moonApi = require("./routes/moonapi");
 const aiInsightRoutes = require("./routes/aiInsights");
 const dreamRoutes = require("./routes/dreams");
-const uploadAvatar = require("./routes/uploadAvatar");
+const uploadProfilePicture = require("./routes/uploadProfilePicture");
 
 
 //  Connect to MongoDB
@@ -61,7 +61,7 @@ app.use((req, res, next) => {
 app.use("/api/moon", moonApi);
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
-app.use("/api/upload-avatar", uploadAvatar);
+app.use("/api/upload-profile-picture", uploadProfilePicture);
 app.use("/api/dreams", dreamRoutes);
 app.use("/api/insights", aiInsightRoutes);
 
