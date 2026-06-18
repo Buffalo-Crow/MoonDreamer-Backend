@@ -50,6 +50,7 @@ const Insight = require("../models/insights");
 // ── Helpers ──────────────────────────────────────────────────────────────────
 const connect = () => mongoose.connect(process.env.MONGODB_URI);
 const disconnect = () => mongoose.disconnect();
+const getUserCount = () => User.countDocuments({});
 
 const deleteUserEverywhere = async (user) => {
   const { _id, firebaseUid, email } = user;
@@ -84,7 +85,10 @@ const deleteUserEverywhere = async (user) => {
 // ── Commands ─────────────────────────────────────────────────────────────────
 
 const listUsers = async () => {
-  const users = await User.find({}, "email username firebaseUid createdAt").lean();
+  const [totalUsers, users] = await Promise.all([
+    getUserCount(),
+    User.find({}, "email username firebaseUid createdAt").lean(),
+  ]);
   if (!users.length) {
     console.log("No users found in MongoDB.");
     return;
@@ -96,7 +100,11 @@ const listUsers = async () => {
       `${String(i + 1).padEnd(4)} ${(u.email || "").padEnd(35)} ${(u.username || "").padEnd(20)} ${u.firebaseUid || "MISSING"}`
     );
   });
-  console.log(`\nTotal: ${users.length} user(s)\n`);
+  let totalLine = `\nTotal: ${totalUsers} user(s)`;
+  if (users.length !== totalUsers) {
+    totalLine += ` (rows fetched: ${users.length})`;
+  }
+  console.log(`${totalLine}\n`);
 };
 
 const deleteByEmail = async (email) => {
@@ -114,8 +122,15 @@ const deleteByEmail = async (email) => {
  * These are "orphan" accounts — they can never sign in.
  */
 const deleteOrphans = async () => {
-  const users = await User.find({}, "email username firebaseUid").lean();
-  console.log(`\nChecking ${users.length} MongoDB user(s) against Firebase Auth…\n`);
+  const [totalUsers, users] = await Promise.all([
+    getUserCount(),
+    User.find({}, "email username firebaseUid").lean(),
+  ]);
+  let checkingLine = `\nChecking ${totalUsers} MongoDB user(s) against Firebase Auth…`;
+  if (users.length !== totalUsers) {
+    checkingLine += ` (rows fetched: ${users.length})`;
+  }
+  console.log(`${checkingLine}\n`);
 
   let orphanCount = 0;
 
