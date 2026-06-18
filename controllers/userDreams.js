@@ -22,33 +22,55 @@ const normalizeTags = (tags) => {
 
 const DATE_ONLY_REGEX = /^\d{4}-\d{2}-\d{2}$/;
 
-const normalizeDreamDate = (rawDate) => {
-  if (!rawDate) return rawDate;
-
-  if (typeof rawDate === "string") {
-    const dateOnlyMatch = rawDate.match(DATE_ONLY_REGEX);
-    if (dateOnlyMatch) {
-      const [, year, month, day] = dateOnlyMatch;
-      return new Date(`${year}-${month}-${day}T00:00:00.000Z`);
-    }
+const parseDateOnlyInput = (rawDate) => {
+  if (typeof rawDate !== "string" || !DATE_ONLY_REGEX.test(rawDate)) {
+    return null;
   }
 
-  return rawDate;
+  const [year, month, day] = rawDate.split("-").map(Number);
+  const parsed = new Date(Date.UTC(year, month - 1, day));
+
+  if (Number.isNaN(parsed.getTime())) {
+    return null;
+  }
+
+  if (parsed.toISOString().slice(0, 10) !== rawDate) {
+    return null;
+  }
+
+  return parsed;
 };
 
 const buildDateFields = (rawDate) => {
-  const parsedDate = normalizeDreamDate(rawDate);
-  const fields = { date: parsedDate };
-
-  if (typeof rawDate === "string" && DATE_ONLY_REGEX.test(rawDate)) {
-    fields.dateInput = rawDate;
+  if (!rawDate) {
+    throw new BadRequestError("Date is required");
   }
 
-  return fields;
+  const dateOnlyValue = parseDateOnlyInput(rawDate);
+  if (dateOnlyValue) {
+    return {
+      date: dateOnlyValue,
+      dateInput: rawDate,
+    };
+  }
+
+  const parsedDate = new Date(rawDate);
+  if (Number.isNaN(parsedDate.getTime())) {
+    throw new BadRequestError("Date must use YYYY-MM-DD format");
+  }
+
+  return { date: parsedDate };
 };
 
 const createDream = (req, res, next) => {
   const { date, summary, categories, tags, location, moonSign, isPublic } = req.body;
+
+  let dateFields;
+  try {
+    dateFields = buildDateFields(date);
+  } catch (err) {
+    return next(err);
+  }
 
 
   // Normalize categories/tags to arrays if sent as comma-separated strings
@@ -62,7 +84,7 @@ const createDream = (req, res, next) => {
 
   const dreamData = {
     userId: req.user._id,
-    ...buildDateFields(date),
+    ...dateFields,
     summary,
     categories: categoriesArr,
     tags: tagsArr,
@@ -110,6 +132,13 @@ const getDreamById = (req, res, next) => {
 const updateDream = (req, res, next) => {
   const { date, summary, categories, tags, location, moonSign, isPublic } = req.body;
 
+  let dateFields;
+  try {
+    dateFields = buildDateFields(date);
+  } catch (err) {
+    return next(err);
+  }
+
   const categoriesArr = Array.isArray(categories)
     ? categories
     : typeof categories === "string" && categories.trim()
@@ -121,7 +150,7 @@ const updateDream = (req, res, next) => {
   Dream.findOneAndUpdate(
     { _id: req.params.id, userId: req.user._id },
     {
-      ...buildDateFields(date),
+      ...dateFields,
       summary,
       categories: categoriesArr,
       tags: tagsArr,
