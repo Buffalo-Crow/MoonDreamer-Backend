@@ -20,33 +20,6 @@ const normalizeTags = (tags) => {
     .filter(Boolean);
 };
 
-const DATE_ONLY_REGEX = /^\d{4}-\d{2}-\d{2}$/;
-
-const normalizeDreamDate = (rawDate) => {
-  if (!rawDate) return rawDate;
-
-  if (typeof rawDate === "string") {
-    const dateOnlyMatch = rawDate.match(DATE_ONLY_REGEX);
-    if (dateOnlyMatch) {
-      const [, year, month, day] = dateOnlyMatch;
-      return new Date(`${year}-${month}-${day}T00:00:00.000Z`);
-    }
-  }
-
-  return rawDate;
-};
-
-const buildDateFields = (rawDate) => {
-  const parsedDate = normalizeDreamDate(rawDate);
-  const fields = { date: parsedDate };
-
-  if (typeof rawDate === "string" && DATE_ONLY_REGEX.test(rawDate)) {
-    fields.dateInput = rawDate;
-  }
-
-  return fields;
-};
-
 const createDream = (req, res, next) => {
   const { date, summary, categories, tags, location, moonSign, isPublic } = req.body;
 
@@ -62,7 +35,7 @@ const createDream = (req, res, next) => {
 
   const dreamData = {
     userId: req.user._id,
-    ...buildDateFields(date),
+    date,
     summary,
     categories: categoriesArr,
     tags: tagsArr,
@@ -120,15 +93,7 @@ const updateDream = (req, res, next) => {
 
   Dream.findOneAndUpdate(
     { _id: req.params.id, userId: req.user._id },
-    {
-      ...buildDateFields(date),
-      summary,
-      categories: categoriesArr,
-      tags: tagsArr,
-      location,
-      moonSign,
-      isPublic: Boolean(isPublic),
-    },
+    { date, summary, categories: categoriesArr, tags: tagsArr, location, moonSign, isPublic: Boolean(isPublic) },
     { new: true, runValidators: true }
   )
     .orFail()

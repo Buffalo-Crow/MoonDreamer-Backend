@@ -18,17 +18,6 @@ const dreamSchema = new mongoose.Schema({
     },
   },
 
-  dateInput: {
-    type: String,
-    validate: {
-      validator(value) {
-        if (!value) return true;
-        return /^\d{4}-\d{2}-\d{2}$/.test(value);
-      },
-      message: "Date must use YYYY-MM-DD format",
-    },
-  },
-
   summary: {
     type: String,
     required: true,
