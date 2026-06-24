@@ -4,8 +4,8 @@ const { generateAIText, generateAITextStream } = require("../services/aiService"
 
 
 const MODELS = {
-  SINGLE: process.env.ANTHROPIC_MODEL_SINGLE || "claude-3-5-haiku-20241022",
-  USER: process.env.ANTHROPIC_MODEL_USER || "claude-3-7-sonnet-20250219",
+  SINGLE: process.env.ANTHROPIC_MODEL_SINGLE || "claude-haiku-4-5-20251001",
+  USER: process.env.ANTHROPIC_MODEL_USER || "claude-sonnet-4-5-20250929",
 };
 
 /**
