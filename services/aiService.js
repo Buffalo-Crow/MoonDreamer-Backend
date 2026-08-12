@@ -5,21 +5,20 @@ const client = new Anthropic({
 });
 
 const DEFAULT_MODEL =
-  process.env.ANTHROPIC_MODEL_DEFAULT || "claude-sonnet-4-5-20250929";
+  process.env.ANTHROPIC_MODEL_DEFAULT || "claude-haiku-4-5-20251001";
 
 let cachedAvailableModelIds = null;
 
 const DEPRECATED_MODEL_ALIASES = {
-  "claude-3-opus-20240229": "claude-sonnet-4-5-20250929",
-  "claude-3-sonnet-20240229": "claude-sonnet-4-5-20250929",
+  "claude-3-opus-20240229": "claude-haiku-4-5-20251001",
   "claude-3-haiku-20240307": "claude-haiku-4-5-20251001",
   "claude-3-5-haiku-20241022": "claude-haiku-4-5-20251001",
-  "claude-3-7-sonnet-20250219": "claude-sonnet-4-5-20250929",
+  "claude-haiku-4-5-20251001": "claude-haiku-4-5-20251001",
 };
 
 const SCOPE_FALLBACK_MODELS = {
-  single: ["claude-haiku-4-5-20251001", "claude-sonnet-4-5-20250929"],
-  "user-pattern": ["claude-sonnet-4-5-20250929", "claude-haiku-4-5-20251001"],
+  single: ["claude-haiku-4-5-20251001"],
+  "user-pattern": ["claude-haiku-4-5-20251001"],
 };
 
 const resolveModelAlias = (model) => {
